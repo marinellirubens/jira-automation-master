@@ -1,0 +1,16 @@
+[JIRA]
+user = rubens.ferreira
+password = admin
+server = http://jira.local
+jql_master = createdDate >= startOfMonth() and project = IBATMS and key = "IBATMS-2866" and assignee in (EMPTY) order by updated DESC
+
+[ORACLE]
+user = system
+password = oracle
+host = localhost
+port = 1521
+sid = orcl
+
+[SETUP]
+process_queue_size = 10
+sleep_time = 1
