@@ -2,11 +2,13 @@
 from __future__ import absolute_import
 
 import logging
+import re
 import sys
 import threading
 from abc import ABC, abstractmethod
 
 import jira
+import pandas
 
 import database as db
 
@@ -54,7 +56,7 @@ class JiraHandler(ABC, threading.Thread):
         """
         try:
             self.jira_session.transition_issue(self.ticket, transition_id)
-        except jira.exceptions.JIRAError as error:
+        except jira.exceptions.JIRAError:
             self.logger.error("Error on transition of status")
 
     def include_comment(self, comment: str) -> None:
@@ -218,16 +220,108 @@ class TlpUpdateHandler(JiraHandler):
     def __init__(self, ticket, database_config: dict, logger: logging.Logger, jira_session) -> None:
         super().__init__(ticket=ticket, database_config=database_config,
                          logger=logger, jira_session=jira_session)
+        self.valid_file = False
 
     def run(self) -> None:
         """Runs the main execution steps"""
+        self.download_tlp_file()
+
+        if not self.valid_file:
+            self.logger.error("File is not valid")
+            self.include_comment("Arquivo não é valido")
+            return
+
+        self.set_status(self.statusses["Take"])
+        self.set_status(self.statusses["Analyze the problem"])
+        self.set_status(self.statusses["Work in local solution"])
+
+        tlp_file = self.read_xls_file(self.attach.filename)
+        commands = self.set_commands()
+        for line in tlp_file:
+            self.execute_command(commands, line)
+
+
+        self.include_comment("Tlp processado, ticket finalizado.")
+        self.set_status(self.statusses["Resolve"])
+
+    def set_commands(self) -> str:
+        """Function to define the commands to be executed on database
+
+        :param parameters: List with the data to be inserted/updated on database.
+        :type parameters: list
+        :return: Return the commands to be executed.
+        :rtype: str
+        """
+        command_update = """update tb_ocs_tlp
+                    set tlp            = ':tlp', 
+                        div_code       = 'LGBR', 
+                        final_user_id  = 'TMS', 
+                        use_yn         = 'Y',
+                        update_date    = sysdate
+                    where model = :model"""
+
+        command_insert = """
+            insert into tb_ocs_tlp (model,tlp,div_code,create_date,final_user_id,use_yn)
+            select  :model, :tlp, 'LGBR', sysdate, 'TMS', 'Y'
+            from dual
+            where not exists (select * from tb_ocs_tlp where model = :model)"""
+
+        return command_update, command_insert
+
+    def execute_command(self, commands: tuple, commands_args: tuple) -> None:
+        """Function to connect on database and execute tho commands.
+
+        :param commands: Commands to be executed.
+        :type commands: str
+        """
+        cursor = self.database.get_cursor()
+        for command in commands:
+            cursor.execute(command, commands_args)
+        self.database.connection.commit()
+
+    def read_xls_file(self, excel_file) -> list:
+        """ Function to extract TLP data from an excel file and returns a list with these values.
+
+        :param excel_file: Excel file path
+        :type excel_file: str
+        :return: List with the data extracted from excel file.
+        :rtype: list
+        """
+        excel_lines = []
+        excel = pandas.read_excel(excel_file, engine='openpyxl', sheet_name='Plan1')
+
+        for row in excel.iloc[1:].iterrows():
+            excel_lines.append([row[1].iloc[10] , row[1].iloc[16]])
+
+        return excel_lines
 
     def download_tlp_file(self) -> None:
         """Downloads file from the ticket"""
+        issue = self.jira_session.search_issues(
+            f'key = {self.ticket.key}', json_result=True,
+            fields="key, attachment"
+        )
+
+        attachment = self.jira_session.attachment(
+            issue['issues'][0]['fields']['attachment'][0]['id']
+        )
+
+        self.attach = attachment.get()
+
+        self.valid_file = self.check_tlp_file_name()
+
+        if self.valid_file:
+            with open(self.attach.filename, 'wb') as file_object:
+                file_object.write(self.attach)
 
     def check_tlp_file_name(self) -> None:
         """Use regex to check file name"""
+        regex = re.compile(r'^TLP_.*\.xlsx$')
+        match = regex.match(self.attach.filename)
+        if not match:
+            return False
 
+        return True
 
 HANDLER_TYPES = {
     "TMS: Registrar cliente para Credit Hold": CreditHoldHandler,
