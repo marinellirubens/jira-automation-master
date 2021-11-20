@@ -230,7 +230,7 @@ class TlpUpdateHandler(JiraHandler):
         :rtype: str
         """
         command_update = """update tb_ocs_tlp
-                    set tlp            = ':tlp', 
+                    set tlp            = :tlp, 
                         div_code       = 'LGBR', 
                         final_user_id  = 'TMS', 
                         use_yn         = 'Y',
