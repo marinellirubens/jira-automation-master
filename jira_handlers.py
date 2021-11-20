@@ -221,6 +221,13 @@ class TlpUpdateHandler(JiraHandler):
         super().__init__(ticket=ticket, database_config=database_config,
                          logger=logger, jira_session=jira_session)
         self.valid_file = False
+        self.columns_validation = [
+            'MODEL_CODE', 'CBM', 'WEIGHT', 'HEIGHT', 'WIDTH', 'DEPTH',
+            '=ARRUMAR(SUBSTITUIR(F1;CARACT(160);CARACT(32)))', 'Unnamed: 7',
+            'Unnamed: 8', 'Unnamed: 9', 'Products', 'Unnamed: 11', 'Unnamed: 12',
+            'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16',
+            'Unnamed: 17'
+        ]
 
     def run(self) -> None:
         """Runs the main execution steps"""
@@ -236,15 +243,20 @@ class TlpUpdateHandler(JiraHandler):
         self.set_status(self.statusses["Work in local solution"])
 
         tlp_file = self.read_xls_file(self.attach.filename)
+        if not tlp_file:
+            self.logger.error("File is not valid")
+            self.include_comment("Arquivo não é valido")
+            return
+
         commands = self.set_commands()
         for line in tlp_file:
             self.execute_command(commands, line)
 
-
         self.include_comment("Tlp processado, ticket finalizado.")
         self.set_status(self.statusses["Resolve"])
 
-    def set_commands(self) -> str:
+    @staticmethod
+    def set_commands() -> str:
         """Function to define the commands to be executed on database
 
         :param parameters: List with the data to be inserted/updated on database.
@@ -290,6 +302,10 @@ class TlpUpdateHandler(JiraHandler):
         excel_lines = []
         excel = pandas.read_excel(excel_file, engine='openpyxl', sheet_name='Plan1')
 
+        if not all(excel.columns == self.columns_validation):
+            self.valid_file = False
+            return None
+
         for row in excel.iloc[1:].iterrows():
             excel_lines.append([row[1].iloc[10] , row[1].iloc[16]])
 
@@ -308,16 +324,17 @@ class TlpUpdateHandler(JiraHandler):
 
         self.attach = attachment.get()
 
-        self.valid_file = self.check_tlp_file_name()
+        self.valid_file = self.check_tlp_file_name(self.attach.filename)
 
         if self.valid_file:
             with open(self.attach.filename, 'wb') as file_object:
                 file_object.write(self.attach)
 
-    def check_tlp_file_name(self) -> None:
+    @staticmethod
+    def check_tlp_file_name(file_name) -> None:
         """Use regex to check file name"""
         regex = re.compile(r'^TLP_.*\.xlsx$')
-        match = regex.match(self.attach.filename)
+        match = regex.match(file_name)
         if not match:
             return False
 
