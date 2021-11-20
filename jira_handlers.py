@@ -81,8 +81,8 @@ class CreditHoldHandler(JiraHandler):
             "exists": "Cliente ja esta na lista de credit hold do TMS",
 
             "deactivated": "Cliente removido na lista de credit hold do tms",
-            "not exists": "Cliente não esta na lista de credit hold do tms",
-            "disabled": "Cliente ja esta desabilitado da lista de credit hold do TMS",
+            # "not exists": "Cliente não esta na lista de credit hold do tms",
+            # "disabled": "Cliente ja esta desabilitado da lista de credit hold do TMS",
         }
 
     def run(self) -> None:
@@ -96,10 +96,9 @@ class CreditHoldHandler(JiraHandler):
         self.client_code = self.ticket.fields.customfield_11701
         self.operation = self.ticket.fields.customfield_11700.value
 
-        if self.operation == 'Incluir':
-            status = self.credit_hold_include()
-        else:
-            status = self.credit_hold_exclude()
+        include_flag = 'Y' if self.operation == 'Incluir' else 'N'
+        status = self.credit_hold_include(include_flag)
+
         self.include_comment(self.possible_outcomes[status])
         if status == "error":
             # TODO: Send email to the team
@@ -108,91 +107,57 @@ class CreditHoldHandler(JiraHandler):
         self.include_comment("Credit Hold processado, ticket finalizado.")
         self.set_status(self.statusses["Resolve"])
 
-    def credit_hold_exclude(self) -> bool:
+    @staticmethod
+    def set_database_commands():
         """
-        Checks if a client has a credit hold.
+        Sets the database commands to be executed.
         """
-        # self.connection = self.database.create_connection()
-        cursor = self.database.get_cursor()
-        credit_hold_query = """
-            select enabled 
-            from   lge_code_lookup 
-            where  class = 'CREDIT_HOLD' 
-            and    code = :client_code"""
-
-        cursor.execute(credit_hold_query, client_code=self.client_code)
-        enabled = cursor.fetchone()
-
-        if not enabled:
-            return "not exists"
-
-        if enabled[0] == 'N':
-            return "disabled"
-
-        self.deactivate_credit_hold()
-        return "deactivated"
-
-    def deactivate_credit_hold(self) -> None:
-        """Deactivates credit hold on the database"""
-        deactivate_credit_hold_command = """
-            update lge_code_lookup
-            set enabled = 'N'
-            where class = 'CREDIT_HOLD'
-            and code = :client_code"""
-        cursor = self.database.get_cursor()
-        cursor.execute(deactivate_credit_hold_command, client_code=self.client_code)
-        self.database.connection.commit()
-        return True
-
-    def credit_hold_include(self) -> bool:
-        """
-        Checks if a client has a credit hold.
-        """
-        # self.connection = self.database.create_connection()
-        cursor = self.database.get_cursor()
-        credit_hold_query = """
-            select enabled 
-            from   lge_code_lookup 
-            where  class = 'CREDIT_HOLD' 
-            and    code = :client_code"""
-
-        cursor.execute(credit_hold_query, client_code=self.client_code)
-        enabled = cursor.fetchone()
-
-        if not enabled:
-            self.insert_credit_hold()
-            return "created"
-
-        if enabled[0] == 'Y':
-            return "exists"
-
-        self.activate_credit_hold()
-        return "updated"
-
-    def insert_credit_hold(self) -> None:
-        """Inserts credit hold on the database"""
         insert_credit_hold_command = """
             insert into lge_code_lookup (class, code, description, enabled)
-            values('CREDIT_HOLD', :client_code, 'Customer with credit on Hold', 'Y')"""
-        cursor = self.database.get_cursor()
-        cursor.execute(insert_credit_hold_command, client_code=self.client_code)
-        self.database.connection.commit()
-        return True
+            values('CREDIT_HOLD', :client_code, 'Customer with credit on Hold', :enabled)"""
 
-    def activate_credit_hold(self) -> None:
-        """
-        Activates a credit hold.
-        """
         update_credit_hold_command = """
             update lge_code_lookup
-            set    enabled = 'Y'
-            where  class = 'CREDIT_HOLD'
-            and    code = :client_code"""
-        cursor = self.database.get_cursor()
+            set enabled = :enabled
+            where class = 'CREDIT_HOLD'
+            and code = :client_code"""
 
-        cursor.execute(update_credit_hold_command, client_code=self.client_code)
+        credit_hold_query = """
+            select enabled 
+            from   lge_code_lookup 
+            where  class = 'CREDIT_HOLD' 
+            and    code = :client_code"""
+
+        return credit_hold_query, update_credit_hold_command, insert_credit_hold_command
+
+    def execute_command(self, command: str, client_code: str, enabled: str) -> None:
+        """execute command for credit hold on the database"""
+        cursor = self.database.get_cursor()
+        cursor.execute(command, client_code=client_code, enabled=enabled)
         self.database.connection.commit()
         return True
+
+    def credit_hold_include(self, include_flag: str) -> bool:
+        """
+        Checks if a client has a credit hold.
+        """
+        # self.connection = self.database.create_connection()
+        cursor = self.database.get_cursor()
+        credit_hold_query, update_credit_hold_command, insert_credit_hold_command = \
+            self.set_database_commands()
+
+        cursor.execute(credit_hold_query, client_code=self.client_code)
+        enabled = cursor.fetchone()
+
+        if not enabled and include_flag == 'Y':
+            self.execute_command(insert_credit_hold_command, self.client_code, include_flag)
+            return "created"
+
+        if enabled[0] == include_flag:
+            return "exists" if include_flag == 'Y' else "disabled"
+
+        self.execute_command(update_credit_hold_command, self.client_code, include_flag)
+        return "updated"
 
 
 class CreateUserHandler(JiraHandler):
