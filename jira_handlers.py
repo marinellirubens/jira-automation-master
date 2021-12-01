@@ -32,6 +32,12 @@ class JiraHandler(ABC, threading.Thread):
             "Resolve" : 71,
         }
 
+    def set_mail_list_lookup_code(self, code: str) -> None:
+        """
+        Sets the mail list lookup code.
+        """
+        self.mail_list_lookup_code = code
+
     def set_database_connection(self) -> None:
         """Set database connection"""
         self.database = db.Oracle(None)
