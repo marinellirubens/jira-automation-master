@@ -54,7 +54,7 @@ def start_service(jira_config: dict, database_config: dict):
     global SERVICE
     SERVICE = JiraService(logger=LOGGER, jira_config=jira_config, database_config=database_config,
                           PROCESS_QUEUE=PROCESS_QUEUE,
-                          PROCESS_QUEUE_SIZE=PROCESS_QUEUE_SIZE, sleep_time=5)
+                          PROCESS_QUEUE_SIZE=PROCESS_QUEUE_SIZE, sleep_time=int(CONFIG['SETUP']['sleep_time']), mail_list_lookup_code=CONFIG['SETUP']['mail_list_lookup_code'])
     SERVICE.start()
 
 

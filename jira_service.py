@@ -29,8 +29,8 @@ class JiraService(threading.Thread):
     :return: None
     """
     def __init__(self, logger: logging.Logger, jira_config: dict,
-                 database_config: dict, PROCESS_QUEUE: list,
-                 PROCESS_QUEUE_SIZE: int = 10, sleep_time: int = 60 ) -> None:
+                 database_config: dict, PROCESS_QUEUE: list, mail_list_lookup_code: str,
+                 PROCESS_QUEUE_SIZE: int = 10, sleep_time: int = 60) -> None:
         threading.Thread.__init__(self)
         self.logger = logger
         self.daemon = True
@@ -45,6 +45,8 @@ class JiraService(threading.Thread):
         self.connection = None
 
         self.handlers_not_found = set()
+        self.mail_list_lookup_code = mail_list_lookup_code
+
     def run(self) -> None:
         """Start jira service"""
         self.logger.info("Jira service started")
