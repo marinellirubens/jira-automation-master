@@ -259,7 +259,7 @@ class TlpUpdateHandler(JiraHandler):
         """
         cursor = self.database.get_cursor()
         for command in commands:
-            cursor.execute(command, commands_args)
+            cursor.execute(command, tlp=commands_args[1], model=commands_args[0])
         self.database.connection.commit()
 
     def read_xls_file(self, excel_file) -> list:
