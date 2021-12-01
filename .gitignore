@@ -1,2 +1,5 @@
 *.log
 *.ini
+__pycache__
+*.pyc
+*.xlsx
