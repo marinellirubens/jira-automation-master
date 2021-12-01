@@ -78,6 +78,9 @@ class JiraService(threading.Thread):
                 continue
 
             for ticket in tickets:
+                if self._check_queue_size():
+                    continue
+
                 self._create_process(ticket)
 
     def set_ticket_assignee(self, ticket: object, assignee: str) -> None:
