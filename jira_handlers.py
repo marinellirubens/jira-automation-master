@@ -12,7 +12,10 @@ import jira
 import pandas
 
 import database as db
+import send_email as email
 
+
+# TODO: Improve the logging
 
 class JiraHandler(ABC, threading.Thread):
     """Handler base class"""
@@ -108,7 +111,19 @@ class CreditHoldHandler(JiraHandler):
 
         self.include_comment(self.possible_outcomes[status])
         if status == "error":
-            # TODO: Send email to the team
+            message_body = "Erro ao incluir cliente na lista de credit hold do tms"
+            message_builder = email.MessageBuilder(subject='[JIRA] Error on handler',
+                                                   body=message_body,
+                                                   sender_email='brtms@lge.com', mime_type='plain')
+
+            receiver_email_list = db.get_mail_list(self.mail_list_lookup_code, self.database)
+            if not receiver_email_list:
+                return
+
+            message = message_builder.build()
+            sender = email.EmailSender(port=25, smtp_server='lgekrhqmh01.lge.com',
+                                       sender_email='brtms@lge.com', )
+            sender.send_email(receiver_email_list, message)
             return
 
         self.include_comment("Credit Hold processado, ticket finalizado.")
