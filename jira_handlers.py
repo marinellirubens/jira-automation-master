@@ -160,7 +160,7 @@ class CreditHoldHandler(JiraHandler):
             return "created"
 
         if enabled[0] == include_flag:
-            return "exists" if include_flag == 'Y' else "disabled"
+            return "exists" if include_flag == 'Y' else "deactivated"
 
         self.execute_command(update_credit_hold_command, self.client_code, include_flag)
         return "updated"
