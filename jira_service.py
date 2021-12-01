@@ -118,7 +118,7 @@ class JiraService(threading.Thread):
         self.process_queue.append({
             "process": process,
             "ticket": ticket,
-            "ïssue": ticket.key,
+            "issue": ticket.key,
             "status": "running",
         })
         try:
