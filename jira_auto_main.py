@@ -8,7 +8,7 @@ from setup import set_logger, get_config
 
 PROCESS_QUEUE = []
 SLEEP_TIME = 1
-PROCESS_QUEUE_SIZE = 10
+PROCESS_QUEUE_SIZE = 1
 LOGGER = logging.getLogger(__name__)
 SERVICE: JiraService = None
 CONFIG = {}
@@ -17,10 +17,12 @@ def main():
     """Main function"""
     global LOGGER
     global CONFIG
+    global PROCESS_QUEUE_SIZE
     try:
         # main service execution
         LOGGER = set_logger()
         CONFIG = get_config('config.ini', LOGGER)
+        PROCESS_QUEUE_SIZE = int(CONFIG['SETUP']['process_queue_size'])
         LOGGER.info('Starting the service')
         start_service(CONFIG['JIRA'], CONFIG['ORACLE'])
         wait_service()
