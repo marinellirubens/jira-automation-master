@@ -63,7 +63,7 @@ class JiraHandler(ABC, threading.Thread):
         try:
             self.jira_session.transition_issue(self.ticket, transition_id)
         except jira.exceptions.JIRAError:
-            self.logger.error("Error on transition of status")
+            self.logger.error(f"[{self.ticket.key}]: Error on transition of status")
 
     def include_comment(self, comment: str) -> None:
         """
@@ -205,7 +205,7 @@ class TlpUpdateHandler(JiraHandler):
         self.download_tlp_file()
 
         if not self.valid_file:
-            self.logger.error("File is not valid")
+            self.logger.error(f"[{self.ticket.key}]: File is not valid")
             self.include_comment("Arquivo não é valido")
             return
 
@@ -215,7 +215,7 @@ class TlpUpdateHandler(JiraHandler):
 
         tlp_file = self.read_xls_file(self.attach.filename)
         if not tlp_file:
-            self.logger.error("File is not valid")
+            self.logger.error(f"[{self.ticket.key}]: File is not valid")
             self.include_comment("Arquivo não é valido")
             return
 
