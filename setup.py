@@ -1,4 +1,4 @@
-""" """
+"""Module to handle the setup/configuration methods"""
 import logging
 import configparser
 import sys
