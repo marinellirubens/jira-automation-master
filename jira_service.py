@@ -44,6 +44,7 @@ class JiraService(threading.Thread):
         self.database_config = database_config
         self.connection = None
 
+        self.handlers_not_found = set()
     def run(self) -> None:
         """Start jira service"""
         self.logger.info("Jira service started")
@@ -137,10 +138,14 @@ class JiraService(threading.Thread):
 
         :return: handler type class
         """
+        if handler_type in self.handlers_not_found:
+            return None
+
         try:
             return HANDLER_TYPES[handler_type]
         except KeyError:
-            self.logger.error("Handler type not found")
+            self.logger.error(f'Handler type "{handler_type}" not found')
+            self.handlers_not_found.add(handler_type)
             return None
 
     def _loop_message(self) -> None:
