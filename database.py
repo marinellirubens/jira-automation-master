@@ -46,3 +46,25 @@ class Oracle:
         except cx_Oracle.DatabaseError as error:
             self.logger.error(error)
             return None
+
+
+def get_mail_list(lookup_code: str, oracle: Oracle) -> list:
+    """Returns the selected mais list
+
+    :param lookup_code: Code of the mail list
+    :type lookup_code: str
+    """
+    mail_list = []
+    cursor = oracle.query_builder(
+        "SELECT ATTRIBUTE1 FROM LGE_CODE_LOOKUP WHERE CLASS = "+ \
+        "'EMAIL_LIST' CODE = :lookup_code and enabled = 'Y'",
+        [lookup_code]
+    )
+    try:
+        row = cursor.fetchone()
+        if row:
+            mail_list = row[0].split(';')
+    except cx_Oracle.DatabaseError as error:
+        oracle.logger.error(error)
+
+    return mail_list
