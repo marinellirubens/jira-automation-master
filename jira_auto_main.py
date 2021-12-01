@@ -37,6 +37,15 @@ def wait_service():
     while SERVICE.is_alive():
         time.sleep(1)
 
+
+def check_processes():
+    """Check the processes on the queue"""
+    for process in PROCESS_QUEUE:
+        if not process['process'].is_alive():
+            LOGGER.info("Process {} ended".format(process['issue']))
+            PROCESS_QUEUE.remove(process)
+
+
 def start_service(jira_config: dict, database_config: dict):
     """Start the service"""
     global SERVICE
