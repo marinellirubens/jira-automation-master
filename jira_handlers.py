@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import logging
+import os
 import re
 import sys
 import threading
@@ -213,7 +214,7 @@ class TlpUpdateHandler(JiraHandler):
         self.set_status(self.statusses["Analyze the problem"])
         self.set_status(self.statusses["Work in local solution"])
 
-        tlp_file = self.read_xls_file(self.attach.filename)
+        tlp_file = self.read_xls_file(self.attach_filename)
         if not tlp_file:
             self.logger.error(f"[{self.ticket.key}]: File is not valid")
             self.include_comment("Arquivo não é valido")
@@ -225,6 +226,12 @@ class TlpUpdateHandler(JiraHandler):
 
         self.include_comment("Tlp processado, ticket finalizado.")
         self.set_status(self.statusses["Resolve"])
+
+        self.delete_file(self.attach_filename)
+
+    def delete_file(self, filename: str) -> None:
+        """Deletes the file"""
+        os.remove(filename)
 
     @staticmethod
     def set_commands() -> str:
@@ -294,11 +301,11 @@ class TlpUpdateHandler(JiraHandler):
         )
 
         self.attach = attachment.get()
-
-        self.valid_file = self.check_tlp_file_name(self.attach.filename)
+        self.attach_filename = attachment.filename
+        self.valid_file = self.check_tlp_file_name(self.attach_filename)
 
         if self.valid_file:
-            with open(self.attach.filename, 'wb') as file_object:
+            with open(self.attach_filename, 'wb') as file_object:
                 file_object.write(self.attach)
 
     @staticmethod
