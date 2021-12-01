@@ -11,17 +11,18 @@ SLEEP_TIME = 1
 PROCESS_QUEUE_SIZE = 10
 LOGGER = logging.getLogger(__name__)
 SERVICE: JiraService = None
-
+CONFIG = {}
 
 def main():
     """Main function"""
     global LOGGER
+    global CONFIG
     try:
         # main service execution
         LOGGER = set_logger()
-        config = get_config('config.ini', LOGGER)
+        CONFIG = get_config('config.ini', LOGGER)
         LOGGER.info('Starting the service')
-        start_service(config['JIRA'], config['ORACLE'])
+        start_service(CONFIG['JIRA'], CONFIG['ORACLE'])
         wait_service()
     except OSError:
         kill_processes()
