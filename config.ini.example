@@ -14,3 +14,4 @@ sid = orcl
 [SETUP]
 process_queue_size = 10
 sleep_time = 1
+mail_list_lookup_code = JIRA_AUTOMATION_MASTER
