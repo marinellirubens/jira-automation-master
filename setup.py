@@ -8,7 +8,9 @@ def set_logger(log_file: str = 'jira_auto_main.log') -> logging.Logger:
     """Set the logger"""
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(module)s.%(funcName)s:%(lineno)d - %(levelname)s - %(message)s'
+    )
     file_handler = logging.FileHandler(log_file)
     stream_handler = logging.StreamHandler()
     file_handler.setFormatter(formatter)
