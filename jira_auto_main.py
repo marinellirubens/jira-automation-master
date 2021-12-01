@@ -35,6 +35,7 @@ def wait_service():
     """Wait for the service to finish"""
     # SERVICE.join()
     while SERVICE.is_alive():
+        check_processes()
         time.sleep(1)
 
 
