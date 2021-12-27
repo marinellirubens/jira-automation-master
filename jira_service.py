@@ -2,11 +2,13 @@
 import logging
 import threading
 import time
-import requests
+from dataclasses import dataclass
 
 import jira
+import requests
 
-from jira_handlers import HANDLER_TYPES
+from jira_handlers import HANDLER_TYPES, JiraHandler
+
 
 
 class JiraService(threading.Thread):
