@@ -29,8 +29,8 @@ class Status(Enum):
 
 class JiraHandler(ABC, threading.Thread):
     """Handler base class"""
-    def __init__(self, ticket: jira.Issue, database_config: dict,
-                 logger: logging.Logger, jira_session) -> None:
+    def __init__(self, ticket: jira.Issue, database_config: configparser.ConfigParser,
+                 logger: logging.Logger, jira_session: jira.JIRA, lookup_code: str) -> None:
         threading.Thread.__init__(self)
         self.daemon = True
         self.ticket = ticket
@@ -39,18 +39,7 @@ class JiraHandler(ABC, threading.Thread):
         self.logger = logger
         self.jira_session = jira_session
         self.set_database_connection()
-        self.statusses = {
-            "Take" : 101,
-            "Analyze the problem" : 61,
-            "Work in local solution" : 141,
-            "Resolve" : 71,
-        }
-
-    def set_mail_list_lookup_code(self, code: str) -> None:
-        """
-        Sets the mail list lookup code.
-        """
-        self.mail_list_lookup_code = code
+        self.mail_list_lookup_code = lookup_code
 
     def set_database_connection(self) -> None:
         """Set database connection"""
@@ -88,9 +77,10 @@ class JiraHandler(ABC, threading.Thread):
 
 class CreditHoldHandler(JiraHandler):
     """Handles the Credit hold requests"""
-    def __init__(self, ticket, database_config: dict, logger: logging.Logger, jira_session) -> None:
+    def __init__(self, ticket, database_config: dict, logger: logging.Logger,
+                 jira_session: jira.JIRA, lookup_code: str) -> None:
         super().__init__(ticket=ticket, database_config=database_config,
-                         logger=logger, jira_session=jira_session)
+                         logger=logger, jira_session=jira_session, lookup_code=lookup_code)
 
         self.client_code = ''
         self.possible_outcomes = {
@@ -194,9 +184,10 @@ class CreditHoldHandler(JiraHandler):
 
 class CreateUserHandler(JiraHandler):
     """Handles the user creation requests"""
-    def __init__(self, ticket, database_config: dict, logger: logging.Logger, jira_session) -> None:
+    def __init__(self, ticket, database_config: dict, logger: logging.Logger,
+                 jira_session: jira.JIRA, lookup_code: str) -> None:
         super().__init__(ticket=ticket, database_config=database_config,
-                         logger=logger, jira_session=jira_session)
+                         logger=logger, jira_session=jira_session, lookup_code=lookup_code)
 
     def run(self) -> None:
         pass
@@ -204,9 +195,10 @@ class CreateUserHandler(JiraHandler):
 
 class UserPasswordResetHandler(JiraHandler):
     """Handles the user creation requests"""
-    def __init__(self, ticket, database_config: dict, logger: logging.Logger, jira_session) -> None:
+    def __init__(self, ticket, database_config: dict, logger: logging.Logger,
+                jira_session: jira.JIRA, lookup_code: str) -> None:
         super().__init__(ticket=ticket, database_config=database_config,
-                         logger=logger, jira_session=jira_session)
+                         logger=logger, jira_session=jira_session, lookup_code=lookup_code)
 
     def run(self) -> None:
         pass
@@ -214,9 +206,10 @@ class UserPasswordResetHandler(JiraHandler):
 
 class TlpUpdateHandler(JiraHandler):
     """Halndles the tlp requests"""
-    def __init__(self, ticket, database_config: dict, logger: logging.Logger, jira_session) -> None:
+    def __init__(self, ticket, database_config: dict, logger: logging.Logger,
+                 jira_session: jira.JIRA, lookup_code: str) -> None:
         super().__init__(ticket=ticket, database_config=database_config,
-                         logger=logger, jira_session=jira_session)
+                         logger=logger, jira_session=jira_session, lookup_code=lookup_code)
         self.valid_file = False
         self.columns_validation = [
             'MODEL_CODE', 'CBM', 'WEIGHT', 'HEIGHT', 'WIDTH', 'DEPTH',
