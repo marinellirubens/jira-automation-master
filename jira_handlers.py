@@ -221,7 +221,7 @@ class TlpUpdateHandler(JiraHandler):
 
     def run(self) -> None:
         """Runs the main execution steps"""
-        self.download_tlp_file()
+        attach_filename = self.download_tlp_file()
 
         if not self.valid_file:
             self.logger.error(f"[{self.ticket.key}]: File is not valid")
@@ -232,7 +232,7 @@ class TlpUpdateHandler(JiraHandler):
         self.set_status(Status.ANALYZE_THE_PROBLEM.value)
         self.set_status(Status.WORK_IN_LOCAL_SOLUTION.value)
 
-        tlp_file = self.read_xls_file(self.attach_filename)
+        tlp_file = self.read_xls_file(attach_filename)
         if not tlp_file:
             self.logger.error(f"[{self.ticket.key}]: File is not valid")
             self.include_comment("Arquivo não é valido")
@@ -245,7 +245,7 @@ class TlpUpdateHandler(JiraHandler):
         self.include_comment("Tlp processado, ticket finalizado.")
         self.set_status(Status.RESOLVE.value)
 
-        self.delete_file(self.attach_filename)
+        self.delete_file(attach_filename)
 
     def delete_file(self, filename: str) -> None:
         """Deletes the file"""
@@ -307,7 +307,7 @@ class TlpUpdateHandler(JiraHandler):
 
         return excel_lines
 
-    def download_tlp_file(self) -> None:
+    def download_tlp_file(self) -> str:
         """Downloads file from the ticket"""
         issue = self.jira_session.search_issues(
             f'key = {self.ticket.key}', json_result=True,
@@ -319,15 +319,18 @@ class TlpUpdateHandler(JiraHandler):
         )
 
         self.attach = attachment.get()
-        self.attach_filename = attachment.filename
-        self.valid_file = self.check_tlp_file_name(self.attach_filename)
+        attach_filename = attachment.filename
+        self.valid_file = self.validate_tlp_file_name(attach_filename)
 
         if self.valid_file:
-            with open(self.attach_filename, 'wb') as file_object:
+            with open(attach_filename, 'wb') as file_object:
                 file_object.write(self.attach)
 
+            return attach_filename
+        return None
+
     @staticmethod
-    def check_tlp_file_name(file_name) -> None:
+    def validate_tlp_file_name(file_name) -> None:
         """Use regex to check file name"""
         regex = re.compile(r'^TLP_.*\.xlsx$')
         match = regex.match(file_name)
