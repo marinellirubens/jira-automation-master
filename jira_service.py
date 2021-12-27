@@ -10,6 +10,14 @@ import requests
 from jira_handlers import HANDLER_TYPES, JiraHandler
 
 
+@dataclass
+class JiraProcess:
+    """Class to contain jira hanlders processes"""
+    process: JiraHandler
+    ticket: jira.Issue
+    issue_key: str
+    status: str = "running"
+
 
 class JiraService(threading.Thread):
     """Jira service to automate issue solving
