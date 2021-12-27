@@ -44,10 +44,10 @@ def wait_service():
 
 def check_processes():
     """Check the processes on the queue"""
-    for process in PROCESS_QUEUE:
-        if not process['process'].is_alive():
-            LOGGER.info("Process {} ended".format(process['issue']))
-            PROCESS_QUEUE.remove(process)
+    for queue_item in PROCESS_QUEUE:
+        if not queue_item.process.is_alive():
+            LOGGER.info("Process %s ended", queue_item.issue_key)
+            PROCESS_QUEUE.remove(queue_item)
 
 
 def start_service(jira_config: dict, database_config: dict):
@@ -61,10 +61,10 @@ def start_service(jira_config: dict, database_config: dict):
 
 def kill_processes():
     """Kill the processes on the queue"""
-    for process in PROCESS_QUEUE:
-        # process['process'].kill()
-        LOGGER.info("Process {} killed".format(process['issue']))
-        PROCESS_QUEUE.remove(process)
+    for queue_item in PROCESS_QUEUE:
+        queue_item.process.kill()
+        LOGGER.info("Process %s killed", queue_item.issue_key)
+        PROCESS_QUEUE.remove(queue_item)
 
     SERVICE.stop()
 
