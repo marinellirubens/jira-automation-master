@@ -109,9 +109,9 @@ class CreditHoldHandler(JiraHandler):
         """
         Runs the credit hold handler.
         """
-        self.set_status(self.statusses["Take"])
-        self.set_status(self.statusses["Analyze the problem"])
-        self.set_status(self.statusses["Work in local solution"])
+        self.set_status(Status.TAKE.value)
+        self.set_status(Status.ANALYZE_THE_PROBLEM.value)
+        self.set_status(Status.WORK_IN_LOCAL_SOLUTION.value)
 
         self.client_code = self.ticket.fields.customfield_11701
         self.operation = self.ticket.fields.customfield_11700.value
@@ -137,7 +137,7 @@ class CreditHoldHandler(JiraHandler):
             return
 
         self.include_comment("Credit Hold processado, ticket finalizado.")
-        self.set_status(self.statusses["Resolve"])
+        self.set_status(Status.RESOLVE.value)
 
     @staticmethod
     def set_database_commands():
@@ -235,9 +235,9 @@ class TlpUpdateHandler(JiraHandler):
             self.include_comment("Arquivo não é valido")
             return
 
-        self.set_status(self.statusses["Take"])
-        self.set_status(self.statusses["Analyze the problem"])
-        self.set_status(self.statusses["Work in local solution"])
+        self.set_status(Status.TAKE.value)
+        self.set_status(Status.ANALYZE_THE_PROBLEM.value)
+        self.set_status(Status.WORK_IN_LOCAL_SOLUTION.value)
 
         tlp_file = self.read_xls_file(self.attach_filename)
         if not tlp_file:
@@ -250,7 +250,7 @@ class TlpUpdateHandler(JiraHandler):
             self.execute_command(commands, line)
 
         self.include_comment("Tlp processado, ticket finalizado.")
-        self.set_status(self.statusses["Resolve"])
+        self.set_status(Status.RESOLVE.value)
 
         self.delete_file(self.attach_filename)
 
