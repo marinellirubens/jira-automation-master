@@ -104,9 +104,9 @@ class CreditHoldHandler(JiraHandler):
         self.set_status(Status.WORK_IN_LOCAL_SOLUTION.value)
 
         self.client_code = self.ticket.fields.customfield_11701
-        self.operation = self.ticket.fields.customfield_11700.value
+        operation = self.ticket.fields.customfield_11700.value
 
-        include_flag = 'Y' if self.operation == 'Incluir' else 'N'
+        include_flag = 'Y' if operation == 'Incluir' else 'N'
         status = self.credit_hold_include(include_flag)
 
         self.include_comment(self.possible_outcomes[status])
