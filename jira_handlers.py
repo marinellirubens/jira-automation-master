@@ -17,6 +17,14 @@ import database as db
 import send_email as email
 
 
+class Status(Enum):
+    """Enum with the status code for jira transitions"""
+    TAKE: 101
+    ANALYZE_THE_PROBLEM: 61
+    WORK_IN_LOCAL_SOLUTION: 141
+    RESOLVE: 71
+
+
 # TODO: Improve the logging
 
 class JiraHandler(ABC, threading.Thread):
