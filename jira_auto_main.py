@@ -29,9 +29,7 @@ def main():
         LOGGER.info('Starting the service')
         start_service(CONFIG['JIRA'], CONFIG['ORACLE'])
         wait_service()
-    except OSError:
-        kill_processes()
-    except KeyboardInterrupt:
+    except (OSError, KeyboardInterrupt):
         kill_processes()
     finally:
         LOGGER.info('Ending service')
