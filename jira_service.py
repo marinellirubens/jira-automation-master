@@ -125,16 +125,11 @@ class JiraService(threading.Thread):
         if not handler:
             return
 
-        process = handler(ticket, self.database_config, self.logger, self.connection)
-        process.set_mail_list_lookup_code(self.mail_list_lookup_code)
+        process: JiraHandler = handler(ticket, self.database_config,
+                                       self.logger, self.connection, self.mail_list_lookup_code)
 
         self.set_ticket_assignee(ticket=ticket, assignee=self.jira_config['user'])
-        self.process_queue.append({
-            "process": process,
-            "ticket": ticket,
-            "issue": ticket.key,
-            "status": "running",
-        })
+        self.process_queue.append(JiraProcess(process, ticket, ticket.key))
         try:
             process.start()
         except RuntimeError as error:
