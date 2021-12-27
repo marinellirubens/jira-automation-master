@@ -1,0 +1,1 @@
+python jira_auto_main.py
