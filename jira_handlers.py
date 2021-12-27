@@ -145,9 +145,9 @@ class CreditHoldHandler(JiraHandler):
             and code = :client_code"""
 
         credit_hold_query = """
-            select enabled 
-            from   lge_code_lookup 
-            where  class = 'CREDIT_HOLD' 
+            select enabled
+            from   lge_code_lookup
+            where  class = 'CREDIT_HOLD'
             and    code = :client_code"""
 
         return credit_hold_query, update_credit_hold_command, insert_credit_hold_command
