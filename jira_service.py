@@ -165,9 +165,9 @@ class JiraService(threading.Thread):
         self.logger.info("Jira service loop")
 
     def set_jira_connection(self) -> None:
-        """Get the JIRA connection"""
+        """Sets self.connection as a new jira.JIRA instance"""
         try:
-            self.connection = jira.JIRA(
+            self.connection: jira.JIRA = jira.JIRA(
                 server=self.jira_config['server'],
                 basic_auth=(self.jira_config['user'], self.jira_config['password']),
                 max_retries=0, timeout=5,
@@ -176,5 +176,5 @@ class JiraService(threading.Thread):
             self.logger.error("Jira connection error")
             self.connection = None
         except jira.exceptions.JIRAError as error:
-            self.logger.error("Jira error: {}".format(error))
+            self.logger.error("Jira error: %s", str(error))
             self.connection = None
