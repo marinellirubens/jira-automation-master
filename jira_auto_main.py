@@ -1,8 +1,10 @@
 """Program to read tickets from JIRA and automate the process of solving the issues"""
+import configparser
 import logging
 import time
+from typing import List
 
-from jira_service import JiraService
+from jira_service import JiraService, JiraProcess
 from setup import set_logger, get_config
 
 
