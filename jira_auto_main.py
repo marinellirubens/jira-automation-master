@@ -8,12 +8,13 @@ from jira_service import JiraService, JiraProcess
 from setup import set_logger, get_config
 
 
-PROCESS_QUEUE = []
-SLEEP_TIME = 1
-PROCESS_QUEUE_SIZE = 1
+PROCESS_QUEUE: List[JiraProcess] = []
+SLEEP_TIME: int = 1
+PROCESS_QUEUE_SIZE: int = 1
 LOGGER = logging.getLogger(__name__)
 SERVICE: JiraService = None
-CONFIG = {}
+CONFIG: configparser.ConfigParser = None
+
 
 def main():
     """Main function"""
