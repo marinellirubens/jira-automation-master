@@ -238,7 +238,7 @@ class TlpUpdateHandler(JiraHandler):
             self.include_comment("Arquivo não é valido")
             return
 
-        commands = self.set_commands()
+        commands = self.get_insert_update_commands()
         for line in tlp_file:
             self.execute_command(commands, line)
 
@@ -252,7 +252,7 @@ class TlpUpdateHandler(JiraHandler):
         os.remove(filename)
 
     @staticmethod
-    def set_commands() -> str:
+    def get_insert_update_commands() -> str:
         """Function to define the commands to be executed on database
 
         :param parameters: List with the data to be inserted/updated on database.
@@ -261,9 +261,9 @@ class TlpUpdateHandler(JiraHandler):
         :rtype: str
         """
         command_update = """update tb_ocs_tlp
-                    set tlp            = :tlp, 
-                        div_code       = 'LGBR', 
-                        final_user_id  = 'TMS', 
+                    set tlp            = :tlp,
+                        div_code       = 'LGBR',
+                        final_user_id  = 'TMS',
                         use_yn         = 'Y',
                         update_date    = sysdate
                     where model = :model"""
