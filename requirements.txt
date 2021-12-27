@@ -1,0 +1,4 @@
+dataclasses
+jira
+pandas
+cx_Oracle
