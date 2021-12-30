@@ -245,11 +245,7 @@ class TlpUpdateHandler(JiraHandler):
         self.include_comment("Tlp processado, ticket finalizado.")
         self.set_status(Status.RESOLVE.value)
 
-        self.delete_file(attach_filename)
-
-    def delete_file(self, filename: str) -> None:
-        """Deletes the file"""
-        os.remove(filename)
+        os.remove(attach_filename)
 
     @staticmethod
     def get_insert_update_commands() -> str:
