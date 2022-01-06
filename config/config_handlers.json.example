@@ -1,0 +1,10 @@
+{
+    "plugins": [
+        "handlers.credit_hold",
+        "handlers.update_tlp"
+    ],
+    "handlers":{    
+        "TMS: Registrar cliente para Credit Hold": "CreditHoldHandler",
+        "TMS: Atualização de Tlp": "UpdateTLPHandler"
+    }
+}

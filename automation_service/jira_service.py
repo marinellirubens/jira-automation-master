@@ -7,8 +7,9 @@ from dataclasses import dataclass
 import jira
 import requests
 
-from jira_handlers import HANDLER_TYPES, JiraHandler
-
+from handlers.jira_handler import JiraHandler, JiraHandlerData
+from automation_service.config import get_config_handler_file
+from automation_service.loader import load_handlers
 
 @dataclass
 class JiraProcess:
@@ -56,10 +57,17 @@ class JiraService(threading.Thread):
 
         self.handlers_not_found = set()
         self.mail_list_lookup_code = mail_list_lookup_code
+        self.handlers_holder: JiraHandlerData = JiraHandlerData()
 
     def run(self) -> None:
         """Start jira service"""
         self.logger.info("Jira service started")
+
+        config_handler_file = get_config_handler_file('config_handlers.json')
+
+        load_handlers(config_handler_file['plugins'], self.handlers_holder)
+        self.handlers_holder.handlers = config_handler_file['handlers']
+
         self._service_loop()
 
     def stop(self) -> None:
@@ -150,7 +158,8 @@ class JiraService(threading.Thread):
             return None
 
         try:
-            return HANDLER_TYPES[handler_type]
+            handler_class = self.handlers_holder.handlers[handler_type]
+            return self.handlers_holder.handlers_classes[handler_class]
         except KeyError:
             self.logger.error(f'Handler type "{handler_type}" not found')
             self.handlers_not_found.add(handler_type)

@@ -4,8 +4,8 @@ import logging
 import time
 from typing import List
 
-from jira_service import JiraService, JiraProcess
-from setup import set_logger, get_config
+from automation_service.jira_service import JiraService, JiraProcess
+from automation_service.config import set_logger, get_config
 
 
 PROCESS_QUEUE: List[JiraProcess] = []
@@ -18,9 +18,9 @@ CONFIG: configparser.ConfigParser = None
 
 def main():
     """Main function"""
-    global LOGGER
-    global CONFIG
-    global PROCESS_QUEUE_SIZE
+    global LOGGER # pylint: disable=global-statement
+    global CONFIG # pylint: disable=global-statement
+    global PROCESS_QUEUE_SIZE # pylint: disable=global-statement
     try:
         # main service execution
         LOGGER = set_logger()
@@ -52,7 +52,7 @@ def check_processes():
 
 def start_service(jira_config: dict, database_config: dict):
     """Start the service"""
-    global SERVICE
+    global SERVICE # pylint: disable=global-statement
     SERVICE = JiraService(
         logger=LOGGER,
         jira_config=jira_config,
