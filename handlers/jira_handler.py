@@ -35,7 +35,8 @@ class JiraHandler(ABC, threading.Thread):
         self.database = None
         self.logger = logger
         self.jira_session = jira_session
-        self.set_database_connection()
+        if self.database_config:
+            self.set_database_connection()
         self.mail_list_lookup_code = lookup_code
         self.handler_type = None
 
@@ -76,13 +77,15 @@ class JiraHandler(ABC, threading.Thread):
 @dataclass
 class JiraHandlerData:
     """Data class for the JiraHandler"""
-    handlers_classes: Dict[str, JiraHandler] = field(default_factory=dict)
-    handlers: List[Dict[str, str]] = field(default_factory=list)
+    handlers_classes: dict
+    handlers: Dict[str, str]
 
     def add_handler(self, handler: JiraHandler) -> None:
         """Add a handler to the list"""
-        self.handlers_classes[handler.__class__.__name__] = handler
+        class_name = handler(None, None, None, None, None).__class__.__name__
+        self.handlers_classes[class_name] = handler
 
     def remove_handler(self, handler: JiraHandler) -> None:
         """Remove a handler from the list"""
-        del self.handlers_classes[handler.__class__.__name__]
+        class_name = handler(None, None, None, None, None).__class__.__name__
+        del self.handlers_classes[class_name]

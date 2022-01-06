@@ -56,16 +56,16 @@ class JiraService(threading.Thread):
 
         self.handlers_not_found = set()
         self.mail_list_lookup_code = mail_list_lookup_code
-        self.handlers_holder: JiraHandlerData = JiraHandlerData()
+        self.handlers_holder: JiraHandlerData = None
 
     def run(self) -> None:
         """Start jira service"""
         self.logger.info("Jira service started")
 
         config_handler_file = get_config_handler_file('config_handlers.json')
+        self.handlers_holder: JiraHandlerData = JiraHandlerData({}, config_handler_file['handlers'])
 
         load_handlers(config_handler_file['plugins'], self.handlers_holder)
-        self.handlers_holder.handlers = config_handler_file['handlers']
 
         self._service_loop()
 
@@ -157,7 +157,7 @@ class JiraService(threading.Thread):
             return None
 
         try:
-            handler_class = self.handlers_holder.handlers[handler_type]
+            handler_class: str = self.handlers_holder.handlers[handler_type]
             return self.handlers_holder.handlers_classes[handler_class]
         except KeyError:
             self.logger.error(f'Handler type "{handler_type}" not found')

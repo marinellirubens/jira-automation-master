@@ -4,4 +4,4 @@ __pycache__
 *.pyc
 *.xlsx
 .venv
-.json
+*.json

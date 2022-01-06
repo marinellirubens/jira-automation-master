@@ -55,9 +55,9 @@ def get_config(config_file: str, logger: logging.Logger = None) -> dict:
         logger = set_logger()
 
     try:
-        config_file_path = os.path.join('config', config_file)
-        config = configparser.ConfigParser(config_file_path)
-        with open(config_file, encoding="UTF-8") as cfg:
+        config_file_path = os.path.abspath(os.path.join('./config', config_file)).replace('\\', '/')
+        config = configparser.ConfigParser()
+        with open(config_file_path, encoding="UTF-8") as cfg:
             config.read_file(cfg)
             return config
     except FileNotFoundError:
