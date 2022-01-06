@@ -24,17 +24,16 @@ class JiraService(threading.Thread):
     """Jira service to automate issue solving
 
     :param logger: logger
-    :param jira_config: jira config
-    :param database_config: database config
-    :param process_queue: process queue
-    :param process_queue_size: process queue size
-    :param sleep_time: sleep time
-
     :type logger: logging.Logger
+    :param jira_config: jira config
     :type jira_config: dict
+    :param database_config: database config
     :type database_config: dict
+    :param process_queue: process queue
     :type process_queue: list
+    :param process_queue_size: process queue size
     :type process_queue_size: int
+    :param sleep_time: sleep time
     :type sleep_time: int
 
     :return: None
