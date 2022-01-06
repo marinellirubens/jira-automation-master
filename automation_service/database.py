@@ -12,7 +12,21 @@ class Oracle:
 
     def create_connection(self, user: str, password: str,
                           host: str, port: str, sid: str) -> cx_Oracle.Connection:
-        """Create connection to oracle database"""
+        """Create connection to oracle database
+
+        :param user: user
+        :type user: str
+        :param password: password
+        :type password: str
+        :param host: host
+        :type host: str
+        :param port: port
+        :type port: str
+        :param sid: sid
+        :type sid: str
+        :return: connection
+        :rtype: cx_Oracle.Connection
+        """
         try:
             dsn = cx_Oracle.makedsn(host, port, sid)
             self.connection = cx_Oracle.connect(user, password, dsn)
@@ -38,7 +52,15 @@ class Oracle:
             self.logger.error(error)
 
     def query_builder(self, query: str, params: list):
-        """Query builder"""
+        """Query builder
+
+        :param query: query
+        :type query: str
+        :param params: params
+        :type params: list
+        :return: query
+        :rtype: str
+        """
         try:
             cursor = self.get_cursor()
             cursor.execute(query, params)
@@ -53,6 +75,10 @@ def get_mail_list(lookup_code: str, oracle: Oracle) -> list:
 
     :param lookup_code: Code of the mail list
     :type lookup_code: str
+    :param oracle: Oracle object
+    :type oracle: Oracle
+    :return: List of mails
+    :rtype: list
     """
     mail_list = []
     cursor = oracle.query_builder(

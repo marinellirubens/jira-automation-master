@@ -9,7 +9,14 @@ DEFAULT_CONFIG_FILE = 'config.ini'
 
 
 def set_logger(log_file: str = 'jira_auto_main.log', log_folder='logs') -> logging.Logger:
-    """Set the logger"""
+    """Set the logger
+
+    :param log_file: name of the log file, defaults to 'jira_auto_main.log'
+    :type log_file: str, optional
+    :param log_folder: folder where the log file is, defaults to 'logs'
+    :type log_folder: str, optional
+    :return: logger
+    """
     logger = logging.getLogger('__name__')
     if not logger:
         logger = logging.Logger('__name__')
@@ -36,7 +43,14 @@ def set_logger(log_file: str = 'jira_auto_main.log', log_folder='logs') -> loggi
 
 
 def get_config(config_file: str, logger: logging.Logger = None) -> dict:
-    """Read the configuration file"""
+    """Read the configuration file
+
+    :param config_file: name of the config file
+    :type config_file: str
+    :param logger: logger, defaults to None
+    :type logger: logging.Logger, optional
+    :return: config
+    """
     if not logger:
         logger = set_logger()
 
@@ -52,7 +66,12 @@ def get_config(config_file: str, logger: logging.Logger = None) -> dict:
 
 
 def get_config_handler_file(config_file_name: str) -> dict:
-    """Read json file information with handlers"""
+    """Read json file information with handlers
+
+    :param config_file_name: name of the config file
+    :type config_file_name: str
+    :return: dict with handlers
+    """
     config_file_path = os.path.join('config', config_file_name)
     with open(config_file_path, encoding="UTF-8") as json_file:
         data = json.load(json_file)
