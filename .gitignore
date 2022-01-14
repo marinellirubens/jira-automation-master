@@ -5,3 +5,5 @@ __pycache__
 *.xlsx
 .venv
 *.json
+*.xml
+.coverage
