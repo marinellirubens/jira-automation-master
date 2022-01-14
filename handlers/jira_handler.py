@@ -89,3 +89,10 @@ class JiraHandlerData:
         """Remove a handler from the list"""
         class_name = handler(None, None, None, None, None).__class__.__name__
         del self.handlers_classes[class_name]
+
+
+def initialize(handlers_holder: JiraHandlerData) -> None:
+    """
+    Initializes the credit hold handler.
+    """
+    handlers_holder.add_handler(JiraHandler)

@@ -1,9 +1,13 @@
-from abc import ABC
+from abc import ABC, ABCMeta, abstractmethod
 import importlib
 from handlers.jira_handler import JiraHandlerData
 
-class HandlerInterface(ABC):
+
+class HandlerInterface(ABC, metaclass=ABCMeta):
+    """Initialize the handler, class used only for typing purposes"""
+
     @staticmethod
+    @abstractmethod
     def initialize():
         """Ïnitilize the handler"""
 
