@@ -1,0 +1,1 @@
+pytest -vp no:warnings --cov=automation_service --cov=handlers --cov-report=term-missing:skip-covered --cov-report=xml:cov.xml --durations=10
