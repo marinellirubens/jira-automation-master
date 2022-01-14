@@ -1,14 +1,61 @@
 """Module to handle the setup/configuration methods"""
+from __future__ import annotations
+
+
 import logging
 import configparser
 import sys
 import os
 import json
+import pathlib
+
+from enum import Enum
+
 
 DEFAULT_CONFIG_FILE = 'config.ini'
 
+def set_file_handler_args_kwargs(log_folder: str, log_file: str) -> tuple:
+    """Returns the args and kwargs for the file handler
 
-def set_logger(log_file: str = 'jira_auto_main.log', log_folder='logs') -> logging.Logger:
+    :param log_file: name of the config file
+    :type log_file: str
+    :param log_folder: folder where the config file is
+    :type log_folder: str
+    :return: args and kwargs
+    :rtype: tuple
+    """
+
+    log_path = pathlib.Path(log_folder, log_file)
+    checks_log_folder(log_folder)
+
+    handler_args = []
+    handler_kwargs = {'filename': log_path.as_posix()}
+
+    return handler_args, handler_kwargs
+
+
+def checks_log_folder(log_folder: str) -> bool:
+    """Checks if the log folder exists if does not creates it
+
+    :param log_folder: folder where the log file is
+    :type log_folder: str
+    :return: True if the folder exists, False otherwise
+    :rtype: bool
+    """
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
+        return True
+    return False
+
+
+class LogHandler(Enum):
+    """Enum to define the log handler"""
+    CONSOLE = (logging.StreamHandler, None)
+    FILE = (logging.FileHandler, set_file_handler_args_kwargs)
+
+
+def set_logger(log_file: str = 'jira_auto_main.log',
+               log_folder='logs', logger_name: str = __name__) -> logging.Logger:
     """Set the logger
 
     :param log_file: name of the log file, defaults to 'jira_auto_main.log'
@@ -17,29 +64,42 @@ def set_logger(log_file: str = 'jira_auto_main.log', log_folder='logs') -> loggi
     :type log_folder: str, optional
     :return: logger
     """
-    logger = logging.getLogger('__name__')
+    logger = logging.getLogger(logger_name)
     if not logger:
-        logger = logging.Logger('__name__')
+        logger = logging.Logger(logger_name)
 
     if logger.handlers:
         return logger
-
-    if not os.path.exists(log_folder):
-        os.makedirs(log_folder)
-
-    log_path = os.path.join(log_folder, log_file)
 
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         '%(asctime)s - %(module)s.%(funcName)s:%(lineno)d - %(levelname)s - %(message)s'
     )
-    file_handler = logging.FileHandler(log_path)
-    stream_handler = logging.StreamHandler()
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
+    for handler_type in LogHandler:
+        handler_args, handler_kwargs = [], {}
+        if handler_type.value[1]:
+            handler_args, handler_kwargs = handler_type.value[1](log_folder, log_file)
+
+        handler = get_log_handler(handler_type, formatter, handler_args, handler_kwargs)
+        logger.addHandler(handler)
     return logger
+
+def get_log_handler(
+    handler_type: LogHandler,
+    formatter: logging.Formatter,
+    handler_args: list = None,
+    handler_kwargs: dict = None) -> logging.Handler:
+    """Returns a log handler
+
+    :param handler_type: type of the handler
+    :type handler_type: LogHandler
+    :param formatter: formatter of the handler
+    :type formatter: logging.Formatter
+    :return: handler
+    """
+    handler = handler_type.value[0](*handler_args, **handler_kwargs)
+    handler.setFormatter(formatter)
+    return handler
 
 
 def get_config(config_file: str, logger: logging.Logger = None) -> dict:
@@ -78,11 +138,9 @@ def get_config_handler_file(config_file_name: str) -> dict:
     return data
 
 
-def configdecorator(function, *args, **kwargs): # pylint: disable=unused-argument
+def configdecorator(*args, **kwargs): # pylint: disable=unused-argument
     """Decorator to get the config file.
 
-    :param function: function to be decorated
-    :type function: function
     :param config_file: name of the config file, defaults to 'pre_rate.ini'
     :type config_file: str, optional
     :param config_folder: folder where the config file is, defaults to 'config'
@@ -91,11 +149,22 @@ def configdecorator(function, *args, **kwargs): # pylint: disable=unused-argumen
     :rtype: function
     """
     config_file = kwargs.get('config_file', DEFAULT_CONFIG_FILE)
-    config_group = kwargs.get('config_group')
+    if kwargs:
+        config_group = kwargs.get('config_group')
+
+        def function_wrapper_param(function, *args, **kwargs): # pylint: disable=unused-argument
+            def func_wrapped(*args, **kwargs):
+                config = get_config(config_file=config_file)
+                if config_group:
+                    config = config[config_group]
+
+                return function(config=config, *args, **kwargs)
+            return func_wrapped
+        return function_wrapper_param
+
+    function = args[0]
     def func_wrapped(*args, **kwargs):
         config = get_config(config_file=config_file)
-        if config_group:
-            config = config[config_group]
 
         return function(config=config, *args, **kwargs)
     return func_wrapped
