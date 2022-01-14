@@ -2,3 +2,5 @@ dataclasses
 jira
 pandas
 cx_Oracle
+pytest
+pytest-cov
