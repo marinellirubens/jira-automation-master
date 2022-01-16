@@ -5,7 +5,7 @@ import logging
 import jira
 
 import automation_service.database as db
-import automation_service.send_email as email
+import automation_service.email as email
 from handlers.jira_handler import JiraHandler, JiraHandlerData, Status
 
 
