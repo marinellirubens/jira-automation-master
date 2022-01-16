@@ -7,14 +7,15 @@ from dataclasses import dataclass
 import jira
 import requests
 
-from handlers.jira_handler import JiraHandler, JiraHandlerData
+from handlers import jira_handler
 from automation_service.config import get_config_handler_file
 from automation_service.loader import load_handlers
+
 
 @dataclass
 class JiraProcess:
     """Class to contain jira hanlders processes"""
-    process: JiraHandler
+    process: jira_handler.JiraHandler
     ticket: jira.Issue
     issue_key: str
     status: str = "running"
@@ -56,14 +57,15 @@ class JiraService(threading.Thread):
 
         self.handlers_not_found = set()
         self.mail_list_lookup_code = mail_list_lookup_code
-        self.handlers_holder: JiraHandlerData = None
+        self.handlers_holder: jira_handler.JiraHandlerData = None
 
     def run(self) -> None:
         """Start jira service"""
         self.logger.info("Jira service started")
 
         config_handler_file = get_config_handler_file('config_handlers.json')
-        self.handlers_holder: JiraHandlerData = JiraHandlerData({}, config_handler_file['handlers'])
+        self.handlers_holder: jira_handler.JiraHandlerData = \
+            jira_handler.JiraHandlerData({}, config_handler_file['handlers'])
 
         load_handlers(config_handler_file['plugins'], self.handlers_holder)
 
@@ -132,7 +134,7 @@ class JiraService(threading.Thread):
         if not handler:
             return
 
-        process: JiraHandler = handler(ticket, self.database_config,
+        process: jira_handler.JiraHandler = handler(ticket, self.database_config,
                                        self.logger, self.connection, self.mail_list_lookup_code)
 
         self.set_ticket_assignee(ticket=ticket, assignee=self.jira_config['user'])
@@ -141,7 +143,7 @@ class JiraService(threading.Thread):
             process.start()
         except RuntimeError as error:
             self.logger.error("Process error")
-            ticket.comment("Process error: {}".format(error))
+            ticket.comment(f"Process error: {error}")
             self.process_queue.popleft()
             return None
 
