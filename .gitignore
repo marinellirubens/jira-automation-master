@@ -7,3 +7,5 @@ __pycache__
 *.json
 *.xml
 .coverage
+.pytest_cache
+.vscode
