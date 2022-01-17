@@ -18,6 +18,16 @@ JIRA_CONFIG_MOCK = {
 DATABASE_CONFIG = {}
 
 
+class MockHandler(mock.MagicMock):
+    """Class to mock jira handler"""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def start(self):
+        """Start mock handler"""
+        raise RuntimeError('Mock handler start')
+
+
 def get_jira_instance(
         logger,
         process_queue=' '.split(),
@@ -127,9 +137,137 @@ def test_jira_service_check_queue_size(
     assert mock_logger.info.call_count == info_call_count
 
 
-# TODO: parametrize tests with multiple queue zise, connection status and tickets
-def test_jira_service_service_loop():
-    ...
+@mock.patch('logging.Logger')
+def test_jira_service_service_loop_check_connection_none(mock_logger: mock.MagicMock):
+    """Tests method _service_loop from class JiraService"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_check_queue_size') as mock_check_queue_size, \
+        mock.patch.object(service, 'connection') as mock_connection, \
+        mock.patch.object(service, 'set_jira_connection') as mock_set_jira_connection, \
+        mock.patch.object(service, '_create_process') as mock_create_process:
+            
+        def set_jira_connection(*args, **kwargs):
+            service.alive = False
+            service.connection = None
+
+        service.set_jira_connection = set_jira_connection
+        service._service_loop()
+
+
+@mock.patch('logging.Logger')
+def test_jira_service_service_loop_check_queue_size(mock_logger: mock.MagicMock):
+    """Tests method _service_loop from class JiraService"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_check_queue_size') as mock_check_queue_size, \
+        mock.patch.object(service, 'connection') as mock_connection, \
+        mock.patch.object(service, 'set_jira_connection') as mock_set_jira_connection, \
+        mock.patch.object(service, '_create_process') as mock_create_process:
+
+        def _check_queue_size(*args, **kwargs):
+            service.alive = False
+            service.connection = None
+
+            return True
+
+        service._check_queue_size = _check_queue_size
+        service._service_loop()
+
+        assert mock_set_jira_connection.call_count == 1
+
+
+@mock.patch('logging.Logger')
+def test_jira_service_service_loop_check_queue_list_empty(mock_logger: mock.MagicMock):
+    """Tests method _service_loop from class JiraService"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_check_queue_size') as mock_check_queue_size, \
+        mock.patch.object(service, 'connection') as mock_connection, \
+        mock.patch.object(service, '_loop_message') as mock_loop_message, \
+        mock.patch.object(service, 'set_jira_connection') as mock_set_jira_connection, \
+        mock.patch.object(service, '_create_process') as mock_create_process:
+
+        service.connection = mock_connection
+        service.sleep = False
+        service.sleep_time = 0
+        def _loop_message(*args, **kwargs):
+            service.alive = False
+            return False
+
+        mock_check_queue_size.return_value = False
+        service._loop_message = _loop_message
+        service.connection.search_issues.return_value = []
+        service._service_loop()
+
+        assert mock_set_jira_connection.call_count == 1
+        assert mock_check_queue_size.call_count == 1
+        assert mock_connection.search_issues.call_count == 1
+        
+        assert mock_create_process.call_count == 0
+
+
+
+@mock.patch('logging.Logger')
+def test_jira_service_service_loop_check_queue_list_not_empty(mock_logger: mock.MagicMock):
+    """Tests method _service_loop from class JiraService"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_check_queue_size') as mock_check_queue_size, \
+        mock.patch.object(service, 'connection') as mock_connection, \
+        mock.patch.object(service, '_loop_message') as mock_loop_message, \
+        mock.patch.object(service, 'set_jira_connection') as mock_set_jira_connection, \
+        mock.patch.object(service, '_create_process') as mock_create_process:
+
+        service.connection = mock_connection
+        service.sleep = False
+        service.sleep_time = 0
+        def _loop_message(*args, **kwargs):
+            service.alive = False
+            return False
+
+        mock_check_queue_size.return_value = False
+        service._loop_message = _loop_message
+        service.connection.search_issues.return_value = [mock.MagicMock()]
+        service._service_loop()
+
+        assert mock_set_jira_connection.call_count == 1
+        assert mock_check_queue_size.call_count == 2
+        assert mock_connection.search_issues.call_count == 1
+        
+        assert mock_create_process.call_count == 1
+
+
+@mock.patch('logging.Logger')
+def test_jira_service_service_loop_check_queue_list_not_empty_but_no_slot_on_queue(mock_logger: mock.MagicMock):
+    """Tests method _service_loop from class JiraService"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_check_queue_size') as mock_check_queue_size, \
+        mock.patch.object(service, 'connection') as mock_connection, \
+        mock.patch.object(service, '_loop_message') as mock_loop_message, \
+        mock.patch.object(service, 'set_jira_connection') as mock_set_jira_connection, \
+        mock.patch.object(service, '_create_process') as mock_create_process:
+
+        service.connection = mock_connection
+        service.sleep = False
+        service.sleep_time = 0
+        def _loop_message(*args, **kwargs):
+            service.alive = False
+            return False
+
+        def check_queue_size(*args, **kwargs):
+            service.alive = False
+            if service.mock_check_queue_size.call_count == 1:
+                return False
+            return True
+
+        service.mock_check_queue_size = mock_check_queue_size
+        mock_check_queue_size.side_effect = check_queue_size
+        service._loop_message = _loop_message
+        service.connection.search_issues.return_value = [mock.MagicMock()]
+        service._service_loop()
+
+        assert mock_set_jira_connection.call_count == 1
+        assert mock_check_queue_size.call_count == 2
+        assert mock_connection.search_issues.call_count == 1
+        
+        assert mock_create_process.call_count == 0
 
 
 @mock.patch('logging.Logger')
@@ -152,12 +290,33 @@ def test_jira_service_set_ticket_assignee_attribute_error(mock_logger):
     mock_logger.error.assert_called_with('Ticket assignee error')
 
 
-def test_jira_service_create_process():
-    ...
+@mock.patch('logging.Logger')
+def test_jira_service_create_process_no_handler_found(mock_logger: mock.MagicMock):
+    """Tests for method _create process of class jira_service"""
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_get_handler') as mock_get_handler:
+        mock_get_handler.return_value = None
+        ticket = mock.MagicMock()
+        service._create_process(ticket=ticket)
+        mock_get_handler.assert_called_once()
+
+        assert service.process_queue == []
 
 
-def test_jira_service_create_process_runtime_error():
-    ...
+@mock.patch('logging.Logger')
+def test_jira_service_create_process_runtime_error(mock_logger: mock.MagicMock):
+    """Tests for method _create process of class jira_service when the is a runtime error""" 
+    service = get_jira_instance(mock_logger)
+    with mock.patch.object(service, '_get_handler') as mock_get_handler:
+        handler = MockHandler
+        mock_get_handler.return_value = handler
+        ticket = mock.MagicMock()
+        service._create_process(ticket=ticket)
+        mock_get_handler.assert_called_once()
+
+        assert service.process_queue.__len__() == 0
+        assert service.logger.error.call_count == 1
+        assert ticket.comment.call_count == 1
 
 
 @pytest.mark.parametrize(
