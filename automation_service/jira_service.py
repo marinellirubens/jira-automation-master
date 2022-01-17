@@ -8,8 +8,8 @@ import jira
 import requests
 
 from handlers import jira_handler
-from automation_service.config import get_config_handler_file
-from automation_service.loader import load_handlers
+from automation_service import config
+from automation_service import loader
 
 
 @dataclass
@@ -63,11 +63,11 @@ class JiraService(threading.Thread):
         """Start jira service"""
         self.logger.info("Jira service started")
 
-        config_handler_file = get_config_handler_file('config_handlers.json')
+        config_handler_file = config.get_config_handler_file('config_handlers.json')
         self.handlers_holder: jira_handler.JiraHandlerData = \
             jira_handler.JiraHandlerData({}, config_handler_file['handlers'])
 
-        load_handlers(config_handler_file['plugins'], self.handlers_holder)
+        loader.load_handlers(config_handler_file['plugins'], self.handlers_holder)
 
         self._service_loop()
 
