@@ -42,7 +42,7 @@ class JiraHandler(ABC, threading.Thread):
 
     def set_database_connection(self) -> None:
         """Set database connection"""
-        self.database = db.Oracle(None)
+        self.database = db.Oracle(self.logger)
         try:
             self.database.create_connection(
                 user=self.database_config['user'],

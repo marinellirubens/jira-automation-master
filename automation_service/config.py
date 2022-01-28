@@ -1,5 +1,5 @@
 """Module to handle the setup/configuration methods"""
-from __future__ import annotations
+# from __future__ import annotations
 
 
 import logging
