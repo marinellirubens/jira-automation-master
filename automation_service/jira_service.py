@@ -144,7 +144,7 @@ class JiraService(threading.Thread):
         except RuntimeError as error:
             self.logger.error("Process error")
             ticket.comment(f"Process error: {error}")
-            del(self.process_queue[-1])
+            del self.process_queue[-1]
             return None
 
     def _get_handler(self, handler_type: str) -> object:
